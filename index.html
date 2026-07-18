@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMR Calculator (Male) — Basal Metabolic Rate, TDEE &amp; Formulas</title>
+  <meta name="description" content="Free BMR calculator for men. Estimate basal metabolic rate with Mifflin-St Jeor (+5), Harris-Benedict, Katch-McArdle &amp; Cunningham. Compare formulas, get TDEE by activity, cut/bulk targets — inspired by calculator.net, ACSM &amp; ADA guidance.">
+  <meta name="google-site-verification" content="uz_j2c_UOuyTXyW6W87egnN8gHCyfSqm3kyY_XEx62w" />
+  <meta name="theme-color" content="#0D9488">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#0D9488;--primary-dark:#0F766E;--primary-light:#CCFBF1;
+      --accent:#14B8A6;--ink:#134E4A;--muted:#64748B;--line:#E2E8F0;
+      --bg:#F0FDFA;--card:#fff;--radius:16px;
+      --shadow:0 8px 32px rgba(13,148,136,.08);
+      --ok:#059669;--warn:#D97706;--danger:#DC2626;
+    }
+    body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:#1E293B;line-height:1.65;font-size:15px}
+    .container{max-width:1080px;margin:0 auto;padding:0 20px}
+    header{background:#fff;border-bottom:1px solid var(--line);padding:16px 0;position:sticky;top:0;z-index:10}
+    .logo{font-size:20px;font-weight:800;color:var(--primary);text-decoration:none}
+    .hero{padding:36px 0 22px;text-align:center;background:linear-gradient(165deg,#CCFBF1,#99F6E4 50%,#F0FDFA)}
+    .hero-badge{display:inline-block;background:var(--primary-light);color:var(--primary-dark);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 14px;border-radius:999px;margin-bottom:12px}
+    .hero h1{font-size:clamp(26px,4vw,38px);font-weight:800;color:var(--ink);margin-bottom:8px;letter-spacing:-.02em}
+    .hero p{max-width:720px;margin:0 auto;color:var(--muted);font-size:15px}
+    .metrics{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+    .metric-pill{padding:8px 14px;background:#fff;border:1px solid var(--line);border-radius:999px;font-size:12px;font-weight:700;color:var(--ink)}
+    .metric-pill span{color:var(--primary)}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;align-items:start;margin:28px 0}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:28px;position:relative;z-index:5}
+    .card h2{font-size:18px;font-weight:800;color:var(--ink);margin-bottom:4px}
+    .card .sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+    .sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary-dark);margin:16px 0 10px}
+    .sec-label:first-of-type{margin-top:0}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:14px}
+    label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:5px}
+    .input,.select{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:11px;font:inherit;font-size:14px;font-weight:600;background:#fff}
+    .input:focus,.select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,148,136,.12)}
+    .hint{font-size:12px;color:var(--muted);padding:11px 12px;background:#F8FAFC;border-radius:10px;border-left:3px solid var(--accent);margin-bottom:14px}
+    .unit-row,.opt-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .unit-btn,.opt-btn{padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);pointer-events:auto}
+    .unit-btn.active,.opt-btn.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:6}
+    .btn-main,.btn-ghost{position:relative;z-index:6;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none;pointer-events:auto}
+    .btn-main{flex:1;min-width:140px;padding:14px 20px;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;border:none;border-radius:11px;font:inherit;font-size:15px;font-weight:800}
+    .btn-ghost{padding:14px 20px;border:1.5px solid var(--line);border-radius:11px;background:#fff;font:inherit;font-size:14px;font-weight:700;color:var(--muted)}
+    .results{display:none;margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+    .results.show{display:block}
+    .plan-preview{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line)}
+    .plan-preview.hide{display:none}
+    .plan-preview h3{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:4px}
+    .plan-preview .pv-sub{font-size:13px;color:var(--muted);margin-bottom:14px}
+    .preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+    .preview-cell{background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:12px;padding:14px;text-align:center}
+    .preview-cell .k{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+    .preview-cell .v{font-size:14px;font-weight:800;color:#94A3B8}
+    .result-hero{text-align:center;color:#fff;border-radius:18px;padding:26px;margin-bottom:16px;background:linear-gradient(145deg,#14B8A6,#0D9488)}
+    .result-hero .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;opacity:.92}
+    .result-hero .val{font-size:clamp(32px,7vw,52px);font-weight:900;margin:8px 0 4px}
+    .result-hero .sub{font-size:14px;opacity:.95}
+    .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+    .result-cell{background:#F8FAFC;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+    .result-cell .k{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+    .result-cell .v{font-size:14px;font-weight:800;color:var(--primary-dark)}
+    .result-cell .v.ok{color:var(--ok)}
+    .result-cell .v.warn{color:var(--warn)}
+    .compare-table,.tdee-table,.summary-table,.ref-table{width:100%;border-collapse:collapse}
+    .compare-table,.tdee-table{font-size:13px;margin:14px 0}
+    .compare-table th,.compare-table td,.tdee-table th,.tdee-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}
+    .compare-table th,.tdee-table th{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);background:#F8FAFC}
+    .compare-table td:last-child,.compare-table th:last-child,.tdee-table td:last-child,.tdee-table th:last-child{text-align:right;font-weight:700}
+    .compare-table tr.highlight td,.tdee-table tr.highlight td{background:var(--primary-light);color:var(--primary-dark)}
+    .ring-wrap{display:flex;align-items:center;gap:20px;margin:16px 0;padding:18px;background:var(--primary-light);border:1px solid #99F6E4;border-radius:16px}
+    .ring{--p:60;width:88px;height:88px;border-radius:50%;background:conic-gradient(var(--primary) calc(var(--p)*1%),#E2E8F0 0);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .ring-inner{width:66px;height:66px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--primary-dark);font-size:13px}
+    .ring-text h4{font-size:14px;font-weight:800;color:var(--ink);margin-bottom:4px}
+    .ring-text p{font-size:12px;color:var(--muted);line-height:1.6}
+    .summary-table{font-size:14px}
+    .summary-table td{padding:9px 0;border-bottom:1px solid var(--line)}
+    .summary-table td:first-child{color:var(--muted);font-weight:600;width:52%}
+    .summary-table td:last-child{font-weight:700;text-align:right}
+    .tip-box,.note-box{margin-top:12px;padding:12px;border-radius:10px;font-size:12px;line-height:1.6}
+    .tip-box{background:var(--primary-light);border:1px solid #99F6E4;color:var(--primary-dark)}
+    .note-box{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+    .sidebar{display:flex;flex-direction:column;gap:14px}
+    .sidebar-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+    .sidebar-card h3{font-size:14px;font-weight:800;margin-bottom:10px}
+    .ref-table{font-size:12px}
+    .ref-table td{padding:6px 0;border-bottom:1px dashed var(--line)}
+    .ref-table td:last-child{text-align:right;font-weight:700}
+    .sidebar-list{list-style:none;font-size:12px;color:var(--muted);line-height:1.9}
+    .guide-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}
+    .guide-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+    .guide-card h2{font-size:16px;font-weight:800;margin-bottom:8px}
+    .guide-card p,.guide-card li{font-size:14px;color:var(--muted)}
+    .guide-card ul{padding-left:18px;margin-top:6px}
+    .formula-box{background:#F8FAFC;border:1px solid var(--line);border-radius:10px;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.8;margin:12px 0;color:var(--ink)}
+    .content-block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin:0 0 20px}
+    .content-block h2{font-size:17px;font-weight:800;color:var(--ink);margin-bottom:8px}
+    .content-block p,.content-block li{font-size:14px;color:var(--muted)}
+    .content-block ul{padding-left:18px;margin-top:8px}
+    .content-block li{margin-bottom:4px}
+    .chart-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:20px}
+    details{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+    details[open]{border-color:var(--primary)}
+    summary{padding:13px 16px;font-weight:700;cursor:pointer;list-style:none;font-size:14px}
+    summary::-webkit-details-marker{display:none}
+    details p{padding:0 16px 14px;font-size:13px;color:var(--muted);line-height:1.65}
+    footer{text-align:center;padding:24px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);background:#fff;margin-top:20px}
+    .ad-top,.ad-sidebar,.ad-bottom,.ad-mid{display:flex;justify-content:center;align-items:center;margin:16px auto;overflow:hidden;min-height:50px;background:transparent;position:relative;z-index:0}
+    .ad-top{width:100%;max-width:728px;min-height:90px}
+    .ad-mid{width:100%;max-width:728px;min-height:90px;margin:8px auto 24px}
+    .ad-sidebar{width:100%;max-width:300px;min-height:250px;border-radius:var(--radius)}
+    .ad-bottom{width:100%;max-width:320px;min-height:50px}
+    .sec-title{font-size:18px;font-weight:800;margin-bottom:12px;color:var(--ink)}
+    .more-tools{margin:28px 0 8px;padding:20px;background:#fff;border:1px solid var(--line);border-radius:16px}
+    .more-tools h2{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:12px}
+    .more-tools .links{display:flex;flex-wrap:wrap;gap:8px}
+    .more-tools a{font-size:12px;font-weight:700;color:var(--primary-dark);text-decoration:none;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff}
+    .more-tools a:hover{border-color:var(--primary);background:var(--primary-light)}
+    .met-only,.imp-only{display:none}
+    body.unit-met .met-only{display:block}
+    body.unit-imp .imp-only{display:block}
+    body.unit-imp .imp-only.flex{display:flex;gap:10px}
+    body.unit-imp .imp-only.flex>div{flex:1}
+    @media(max-width:860px){
+      .layout,.form-grid,.result-grid,.guide-grid,.preview-grid{grid-template-columns:1fr}
+      .ring-wrap{flex-direction:column;text-align:center}
+    }
+  </style>
+</head>
+<body class="unit-met">
+
+<header>
+  <div class="container"><a href="../" class="logo">BMR Calculator (Male)</a></div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <span class="hero-badge">Mifflin-St Jeor · TDEE · Male +5</span>
+    <h1>BMR Calculator (Male)</h1>
+    <p>Estimate basal metabolic rate for men — Mifflin-St Jeor (+5), revised Harris-Benedict, Katch-McArdle &amp; Cunningham. Compare formulas, multiply by activity for TDEE, then set cut / maintain / lean-bulk targets. Inspired by calculator.net, ACSM &amp; ADA validation studies.</p>
+    <div class="metrics">
+      <div class="metric-pill"><span>Men BMR</span> +5 constant</div>
+      <div class="metric-pill"><span>BMR</span> ≈ 60–75% of TDEE</div>
+      <div class="metric-pill"><span>Safe floor</span> ~1,500 kcal</div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-top">
+    <script>atOptions={'key':'b31a21d357a574f5abfe948e08497cc3','format':'iframe','height':90,'width':728,'params':{}};</script>
+    <script src="https://www.highperformanceformat.com/b31a21d357a574f5abfe948e08497cc3/invoke.js"></script>
+    <!-- 顶部广告脚本（加了属性） -->
+    <script data-cfasync="false" src="https://adsterra-xxx1.js"></script>
+  </div>
+</div>
+
+<div class="container">
+  <div class="layout">
+    <main class="card">
+      <h2>Calculate your BMR</h2>
+      <p class="sub">Built for men — uses the male Mifflin-St Jeor constant (+5). Add body fat % to unlock lean-mass formulas (often better for muscular men).</p>
+
+      <div class="sec-label">Units</div>
+      <div class="unit-row" id="unitRow">
+        <button type="button" class="unit-btn active" data-unit="met">Metric (kg / cm)</button>
+        <button type="button" class="unit-btn" data-unit="imp">Imperial (lb / ft·in)</button>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <label for="age">Age (years)</label>
+          <input class="input" type="number" id="age" value="30" min="18" max="90" step="1">
+        </div>
+        <div>
+          <label for="bodyFat">Body fat % <span style="font-weight:400;text-transform:none">(optional)</span></label>
+          <input class="input" type="number" id="bodyFat" placeholder="e.g. 18" min="5" max="50" step="0.1">
+        </div>
+        <div class="met-only">
+          <label for="weightKg">Weight (kg)</label>
+          <input class="input" type="number" id="weightKg" value="80" min="40" max="250" step="0.1">
+        </div>
+        <div class="imp-only">
+          <label for="weightLb">Weight (lb)</label>
+          <input class="input" type="number" id="weightLb" value="176" min="90" max="550" step="0.1">
+        </div>
+        <div class="met-only">
+          <label for="heightCm">Height (cm)</label>
+          <input class="input" type="number" id="heightCm" value="178" min="140" max="230" step="0.1">
+        </div>
+        <div class="imp-only flex">
+          <div>
+            <label for="heightFt">Height (ft)</label>
+            <input class="input" type="number" id="heightFt" value="5" min="4" max="7" step="1">
+          </div>
+          <div>
+            <label for="heightIn">Inches</label>
+            <input class="input" type="number" id="heightIn" value="10" min="0" max="11.9" step="0.1">
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-label">Activity level (for TDEE)</div>
+      <div class="opt-row" id="activityRow">
+        <button type="button" class="opt-btn" data-act="1.2">Sedentary</button>
+        <button type="button" class="opt-btn" data-act="1.375">Light</button>
+        <button type="button" class="opt-btn active" data-act="1.55">Moderate</button>
+        <button type="button" class="opt-btn" data-act="1.725">Active</button>
+        <button type="button" class="opt-btn" data-act="1.9">Athlete</button>
+      </div>
+
+      <p class="hint">BMR is measured after 8+ hours sleep, 12+ hours fasting, lying still in a thermoneutral room (20–25°C). Most online tools estimate BMR; use TDEE (BMR × activity) for daily meal targets — never eat below BMR long-term.</p>
+
+      <div class="btn-row">
+        <button type="button" class="btn-main" id="btnCalc">Calculate BMR</button>
+        <button type="button" class="btn-ghost" id="btnReset">Reset</button>
+      </div>
+
+      <div class="results" id="results"></div>
+
+      <div class="plan-preview" id="planPreview">
+        <h3>Your results preview</h3>
+        <p class="pv-sub">Enter stats and tap Calculate — you’ll get a full breakdown like this:</p>
+        <div class="preview-grid">
+          <div class="preview-cell"><div class="k">BMR</div><div class="v">~1,780 kcal</div></div>
+          <div class="preview-cell"><div class="k">Per hour</div><div class="v">~74 kcal</div></div>
+          <div class="preview-cell"><div class="k">TDEE (mod.)</div><div class="v">~2,760 kcal</div></div>
+        </div>
+        <p class="pv-sub" style="margin:0;text-align:center">Includes 4-formula compare, activity TDEE table, cut/bulk targets &amp; tips.</p>
+      </div>
+    </main>
+
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <h3>BMR vs TDEE</h3>
+        <table class="ref-table">
+          <tr><td>BMR</td><td>Complete rest</td></tr>
+          <tr><td>RMR</td><td>~BMR + 10%</td></tr>
+          <tr><td>TDEE</td><td>BMR × activity</td></tr>
+          <tr><td>TEF</td><td>~10% of intake</td></tr>
+          <tr><td>Min (men)</td><td>~1,500 kcal</td></tr>
+        </table>
+      </div>
+      <div class="sidebar-card">
+        <h3>Activity multipliers</h3>
+        <table class="ref-table">
+          <tr><td>Sedentary</td><td>×1.2</td></tr>
+          <tr><td>Light (1–3×/wk)</td><td>×1.375</td></tr>
+          <tr><td>Moderate (3–5×)</td><td>×1.55</td></tr>
+          <tr><td>Active (6–7×)</td><td>×1.725</td></tr>
+          <tr><td>Athlete / labor</td><td>×1.9</td></tr>
+        </table>
+      </div>
+      <div class="sidebar-card">
+        <h3>Formula guide</h3>
+        <ul class="sidebar-list">
+          <li>· <strong>Mifflin-St Jeor</strong> — default, ±10%</li>
+          <li>· <strong>Harris-Benedict</strong> — legacy compare</li>
+          <li>· <strong>Katch-McArdle</strong> — needs BF%</li>
+          <li>· <strong>Cunningham</strong> — athletes, BF%</li>
+        </ul>
+      </div>
+      <div class="sidebar-card">
+        <h3>Quick example</h3>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:10px">30 yr · 80 kg · 178 cm · 18% BF · moderate → BMR ~1,787 · TDEE ~2,770 kcal.</p>
+        <button type="button" class="btn-ghost" style="width:100%" id="btnExample">Load example</button>
+      </div>
+      <div class="ad-sidebar">
+        <script>atOptions={'key':'5b2625d96c11d7b599cea160717bc0f6','format':'iframe','height':250,'width':300,'params':{}};</script>
+        <script src="https://www.highperformanceformat.com/5b2625d96c11d7b599cea160717bc0f6/invoke.js"></script>
+      </div>
+    </aside>
+  </div>
+
+  <section class="guide-grid">
+    <div class="guide-card">
+      <h2>What is BMR?</h2>
+      <p>Basal Metabolic Rate is the minimum energy (kcal) your body needs at complete rest to maintain breathing, circulation, and cell repair. For most men, BMR is 60–75% of total daily burn.</p>
+      <div class="formula-box">BMR<sub>male</sub> = 10×kg + 6.25×cm − 5×age + 5<br>Mifflin-St Jeor (1990)</div>
+    </div>
+    <div class="guide-card">
+      <h2>BMR vs RMR vs TDEE</h2>
+      <ul>
+        <li><strong>BMR</strong> — strict lab rest, fully fasted</li>
+        <li><strong>RMR</strong> — resting rate, often ~10% higher</li>
+        <li><strong>TDEE</strong> — BMR × activity (meal planning)</li>
+        <li>Pick activity honestly — most men overestimate</li>
+      </ul>
+    </div>
+    <div class="guide-card">
+      <h2>Lean-mass formulas</h2>
+      <p>When body fat % is known (DEXA, BodPod, calipers), lean-mass equations often beat height/weight estimates for trained men.</p>
+      <div class="formula-box">Katch-McArdle: 370 + 21.6 × Lean kg<br>Cunningham: 500 + 22 × Lean kg</div>
+    </div>
+  </section>
+
+  <div class="ad-mid">
+    <!-- 文中广告脚本（加了属性） -->
+    <script data-cfasync="false" src="https://adsterra-xxx2.js"></script>
+  </div>
+
+  <div class="content-block">
+    <h2>Which BMR formula is best for men?</h2>
+    <p>A 2005 American Dietetic Association review found <strong>Mifflin-St Jeor</strong> the most reliable for the general population — within about ±10% for most adults. The male equation adds <strong>+5</strong> (women use −161). If you know body fat %, <strong>Katch-McArdle</strong> often wins for lean or muscular men. Revised <strong>Harris-Benedict</strong> is useful for comparison but tends to overestimate slightly in modern cohorts. <strong>Cunningham</strong> is popular with athletes when lean mass is known.</p>
+  </div>
+
+  <div class="content-block">
+    <h2>How to use your BMR number</h2>
+    <ul>
+      <li>Multiply by an activity factor (1.2–1.9) to estimate TDEE — that is your maintenance line.</li>
+      <li>For fat loss, start ~300–500 kcal below TDEE, not at BMR. Stay above ~1,500 kcal/day unless a clinician advises otherwise.</li>
+      <li>For lean bulk, add ~200–300 kcal above TDEE and prioritize protein + progressive lifting.</li>
+      <li>Recalculate after ±5–7 kg weight change, major body-comp shifts, or when progress stalls 2–4 weeks.</li>
+    </ul>
+  </div>
+
+  <h2 class="sec-title">Male BMR formula reference</h2>
+  <p style="font-size:13px;color:var(--muted);margin:-4px 0 12px">Equations used by calculator.net, ATHLEAN-X style tools &amp; clinical nutrition texts (W = kg, H = cm, A = years, F = body-fat fraction).</p>
+  <div class="chart-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr><th>Formula</th><th>Male equation</th><th>Best for</th></tr>
+      </thead>
+      <tbody>
+        <tr class="highlight"><td>Mifflin-St Jeor</td><td>10W + 6.25H − 5A + 5</td><td>Most men (default)</td></tr>
+        <tr><td>Harris-Benedict (rev.)</td><td>88.362 + 13.397W + 4.799H − 5.677A</td><td>Legacy compare</td></tr>
+        <tr><td>Katch-McArdle</td><td>370 + 21.6 × Lean</td><td>Known BF%</td></tr>
+        <tr><td>Cunningham</td><td>500 + 22 × Lean</td><td>Athletes / lean mass</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="sec-title">FAQ</h2>
+  <details>
+    <summary>Which BMR formula is most accurate for men?</summary>
+    <p>Mifflin-St Jeor (1990) is the most widely validated for general populations — typically within ±10% of measured BMR. For lean or muscular men with a reliable body-fat %, Katch-McArdle is often closer. Harris-Benedict tends to overestimate slightly. Lab indirect calorimetry remains the gold standard.</p>
+  </details>
+  <details>
+    <summary>Should I eat at my BMR to lose weight?</summary>
+    <p>No. BMR ignores activity and digestion. Daily targets should start from TDEE (BMR × activity). Eating at or below BMR for long periods is usually too aggressive. A common safety floor for men is about 1,500 kcal/day — discuss aggressive deficits with a clinician.</p>
+  </details>
+  <details>
+    <summary>How is BMR measured in a lab?</summary>
+    <p>Gold standard is indirect calorimetry — measuring O₂ consumption and CO₂ production after overnight fast, 8+ hours sleep, no exercise for ~24 hours, and lying still in a thermoneutral room (about 20–25°C) with an inactive sympathetic nervous system.</p>
+  </details>
+  <details>
+    <summary>What raises or lowers male BMR?</summary>
+    <p>Higher lean mass, larger body size, and healthy thyroid function raise BMR. Age, prolonged severe dieting, poor sleep, low protein, and some illnesses can lower it. Genetics and hormones also matter — two men with the same stats can differ by ~10–15%.</p>
+  </details>
+  <details>
+    <summary>BMR vs TDEE — which do I use for meal planning?</summary>
+    <p>Use TDEE for daily calorie targets. BMR is your resting floor and helps you understand how much activity adds. Activity multipliers already bake in typical NEAT and exercise bands; add awareness of thermic effect of food (~10%) when logging macros.</p>
+  </details>
+  <details>
+    <summary>When should I recalculate BMR?</summary>
+    <p>Recalculate after gaining or losing roughly 10–15 lb (5–7 kg), a clear body-composition change, turning a new decade, or after 12+ weeks of dieting when the scale stalls despite adherence. Treat the number as a starting point — adjust ±100–150 kcal from real-world trend over 2–4 weeks.</p>
+  </details>
+</div>
+
+<div class="container">
+  <div class="ad-bottom">
+    <script>atOptions={'key':'5a3667e1a909df26029e97d7d01cf2b5','format':'iframe','height':50,'width':320,'params':{}};</script>
+    <script src="https://www.highperformanceformat.com/5a3667e1a909df26029e97d7d01cf2b5/invoke.js"></script>
+    <!-- 底部广告脚本（加了属性） -->
+    <script data-cfasync="false" src="https://adsterra-xxx3.js"></script>
+  </div>
+</div>
+
+<div class="container">
+  <div class="more-tools">
+    <h2>More tools on QuickCalc Hub</h2>
+    <div class="links">
+      <a href="../ns-73/">Calorie Calculator for Women</a>
+      <a href="../ns-82/">BMI Calculator (Male)</a>
+      <a href="../ns-57/">BMR Calculator (classic)</a>
+      <a href="../ns-13/">Body Fat %</a>
+      <a href="../">All tools</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">BMR Calculator (Male) — educational estimates from Mifflin-St Jeor, Harris-Benedict, Katch-McArdle &amp; ACSM-style activity factors. Not medical advice. Consult a clinician for personal nutrition decisions.</div>
+</footer>
+
+<script>
+(function(){
+  var ACTIVITY=[
+    {n:'Sedentary',d:'Desk job, little exercise',f:1.2},
+    {n:'Light',d:'1–3 workouts/week',f:1.375},
+    {n:'Moderate',d:'3–5 workouts/week',f:1.55},
+    {n:'Active',d:'6–7 intense sessions/week',f:1.725},
+    {n:'Athlete',d:'2× daily or physical job',f:1.9}
+  ];
+  var activity=1.55;
+
+  var byId=function(id){return document.getElementById(id);};
+  function num(el){return parseFloat(el&&el.value);}
+  function fmt(n){return Math.round(n).toLocaleString();}
+
+  function getMetric(){
+    var unit=document.body.classList.contains('unit-imp')?'imp':'met';
+    var kg,cm;
+    if(unit==='met'){
+      kg=num(byId('weightKg'));
+      cm=num(byId('heightCm'));
+    }else{
+      kg=num(byId('weightLb'))*0.45359237;
+      var ft=num(byId('heightFt'))||0;
+      var inch=num(byId('heightIn'))||0;
+      cm=(ft*12+inch)*2.54;
+    }
+    return {kg:kg,cm:cm,unit:unit};
+  }
+
+  function calcFormulas(kg,cm,age,bf){
+    var mifflin=10*kg+6.25*cm-5*age+5;
+    var harris=88.362+13.397*kg+4.799*cm-5.677*age;
+    var katch=null,cunningham=null,lean=null;
+    if(bf>=5&&bf<=50){
+      lean=kg*(1-bf/100);
+      katch=370+21.6*lean;
+      cunningham=500+22*lean;
+    }
+    var primary=(katch!==null)?katch:mifflin;
+    var primaryName=(katch!==null)?'Katch-McArdle':'Mifflin-St Jeor';
+    return {mifflin:mifflin,harris:harris,katch:katch,cunningham:cunningham,lean:lean,primary:primary,primaryName:primaryName};
+  }
+
+  function calc(){
+    var age=parseInt(byId('age').value,10);
+    var bf=num(byId('bodyFat'));
+    var m=getMetric();
+    if(!isFinite(age)||age<18||age>90){alert('Enter age 18–90.');return;}
+    if(isNaN(m.kg)||isNaN(m.cm)||m.kg<40||m.cm<140){alert('Enter a valid weight and height.');return;}
+
+    var f=calcFormulas(m.kg,m.cm,age,isNaN(bf)?0:bf);
+    var bmr=f.primary;
+    var bmi=m.kg/((m.cm/100)*(m.cm/100));
+    var perHour=bmr/24;
+    var rmr=bmr*1.1;
+    var tdee=bmr*activity;
+    var bmrPct=Math.min(78,Math.max(52,Math.round(bmr/tdee*100)));
+    var cut=Math.max(1500,tdee-500);
+    var bulk=tdee+300;
+
+    var compareRows=[
+      {name:'Mifflin-St Jeor',val:f.mifflin,note:'Recommended default (ADA)',key:'mifflin'},
+      {name:'Harris-Benedict (rev.)',val:f.harris,note:'Legacy comparison',key:'harris'},
+      {name:'Katch-McArdle',val:f.katch,note:f.katch!==null?f.lean.toFixed(1)+' kg lean mass':'Enter body fat %',key:'katch'},
+      {name:'Cunningham',val:f.cunningham,note:f.cunningham!==null?'Athlete lean-mass':'Enter body fat %',key:'cunningham'}
+    ];
+    var primaryKey=f.katch!==null?'katch':'mifflin';
+    var compareHtml=compareRows.map(function(r){
+      var hl=r.key===primaryKey?' class="highlight"':'';
+      var val=r.val!==null?fmt(r.val)+' kcal':'—';
+      return '<tr'+hl+'><td>'+r.name+'</td><td style="color:var(--muted);font-size:12px;font-weight:500;text-align:left">'+r.note+'</td><td>'+val+'</td></tr>';
+    }).join('');
+
+    var tdeeHtml=ACTIVITY.map(function(a){
+      var hl=a.f===activity?' class="highlight"':'';
+      return '<tr'+hl+'><td>'+a.n+' <span style="color:var(--muted);font-weight:400">×'+a.f+'</span><br><span style="font-size:11px;color:var(--muted);font-weight:400">'+a.d+'</span></td><td>'+fmt(bmr*a.f)+' kcal</td></tr>';
+    }).join('');
+
+    var vals=compareRows.filter(function(r){return r.val!==null;}).map(function(r){return r.val;});
+    var spread=vals.length>1?Math.round((Math.max.apply(null,vals)-Math.min.apply(null,vals))/(vals.reduce(function(s,v){return s+v;},0)/vals.length)*100):0;
+    var actLabel=(ACTIVITY.filter(function(a){return a.f===activity;})[0]||ACTIVITY[2]).n;
+
+    var html='';
+    html+='<div class="result-hero"><div class="lbl">Your BMR · '+f.primaryName+'</div>';
+    html+='<div class="val">'+fmt(bmr)+' kcal</div>';
+    html+='<div class="sub">At complete rest · ~'+Math.round(perHour)+' kcal/hour · male adult estimate</div></div>';
+
+    html+='<div class="result-grid">';
+    html+='<div class="result-cell"><div class="k">RMR estimate</div><div class="v">'+fmt(rmr)+'</div></div>';
+    html+='<div class="result-cell"><div class="k">TDEE ('+actLabel+')</div><div class="v ok">'+fmt(tdee)+'</div></div>';
+    html+='<div class="result-cell"><div class="k">BMI</div><div class="v">'+bmi.toFixed(1)+'</div></div>';
+    html+='<div class="result-cell"><div class="k">Per hour at rest</div><div class="v">'+Math.round(perHour)+' kcal</div></div>';
+    html+='<div class="result-cell"><div class="k">Safe floor (men)</div><div class="v warn">1,500 kcal</div></div>';
+    html+='<div class="result-cell"><div class="k">Formula spread</div><div class="v">~'+spread+'%</div></div>';
+    html+='</div>';
+
+    html+='<div class="ring-wrap"><div class="ring" style="--p:'+bmrPct+'"><div class="ring-inner">'+bmrPct+'%</div></div>';
+    html+='<div class="ring-text"><h4>BMR share of your TDEE</h4><p>At '+actLabel.toLowerCase()+' activity (×'+activity+'), BMR is about '+bmrPct+'% of daily burn. Movement, training, and digestion make up the rest.</p></div></div>';
+
+    html+='<h3 style="font-size:14px;font-weight:800;margin:16px 0 8px;color:var(--ink)">Formula comparison</h3>';
+    html+='<table class="compare-table"><thead><tr><th>Formula</th><th>Notes</th><th>BMR</th></tr></thead><tbody>'+compareHtml+'</tbody></table>';
+
+    html+='<h3 style="font-size:14px;font-weight:800;margin:16px 0 8px;color:var(--ink)">Estimated TDEE by activity</h3>';
+    html+='<p style="font-size:12px;color:var(--muted);margin-bottom:4px">Based on primary BMR ('+fmt(bmr)+' kcal). Highlighted row matches your selection.</p>';
+    html+='<table class="tdee-table"><thead><tr><th>Activity level</th><th>Est. TDEE</th></tr></thead><tbody>'+tdeeHtml+'</tbody></table>';
+
+    html+='<table class="summary-table">';
+    html+='<tr><td>Sex / age</td><td>Male · '+age+' years</td></tr>';
+    html+='<tr><td>Weight / height</td><td>'+m.kg.toFixed(1)+' kg · '+m.cm.toFixed(0)+' cm</td></tr>';
+    html+='<tr><td>Primary formula</td><td>'+f.primaryName+'</td></tr>';
+    html+='<tr><td>Body fat %</td><td>'+(f.lean!==null?bf+'% · '+f.lean.toFixed(1)+' kg lean':'Not provided')+'</td></tr>';
+    html+='<tr><td>Fat-loss target (−500)</td><td>'+fmt(cut)+' kcal</td></tr>';
+    html+='<tr><td>Maintain (TDEE)</td><td>'+fmt(tdee)+' kcal</td></tr>';
+    html+='<tr><td>Lean bulk (+300)</td><td>'+fmt(bulk)+' kcal</td></tr>';
+    html+='</table>';
+
+    html+='<div class="tip-box"><strong>Tip:</strong> Use TDEE — not BMR — for daily targets. Hold '+fmt(tdee)+' kcal for 2–3 weeks, then adjust ±100–150 kcal from the scale trend. Most men overestimate activity — if unsure, pick one level lower.</div>';
+    html+='<div class="note-box"><strong>Disclaimer:</strong> Educational estimate only (±10% typical). Sleep, thyroid health, NEAT, and diet history change real resting burn. Not a medical diagnosis.</div>';
+    html+='<div class="btn-row" style="margin-top:14px"><button type="button" class="btn-ghost" id="btnCopy">Copy results</button></div>';
+
+    byId('results').innerHTML=html;
+    byId('results').classList.add('show');
+    byId('planPreview').classList.add('hide');
+    window._last=byId('results').innerText;
+    var copyBtn=byId('btnCopy');
+    if(copyBtn){
+      copyBtn.addEventListener('click',function(){
+        navigator.clipboard.writeText(window._last.replace(/\s+/g,' ').trim()).then(function(){alert('Copied!');});
+      });
+    }
+    byId('results').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function reset(){
+    document.body.classList.remove('unit-imp');
+    document.body.classList.add('unit-met');
+    document.querySelectorAll('#unitRow .unit-btn').forEach(function(b){
+      b.classList.toggle('active',b.getAttribute('data-unit')==='met');
+    });
+    activity=1.55;
+    document.querySelectorAll('#activityRow .opt-btn').forEach(function(b){
+      b.classList.toggle('active',b.getAttribute('data-act')==='1.55');
+    });
+    byId('age').value='30';
+    byId('bodyFat').value='';
+    byId('weightKg').value='80';
+    byId('weightLb').value='176';
+    byId('heightCm').value='178';
+    byId('heightFt').value='5';
+    byId('heightIn').value='10';
+    byId('results').classList.remove('show');
+    byId('results').innerHTML='';
+    byId('planPreview').classList.remove('hide');
+  }
+
+  function loadExample(){
+    reset();
+    byId('age').value='30';
+    byId('weightKg').value='80';
+    byId('heightCm').value='178';
+    byId('bodyFat').value='18';
+    calc();
+  }
+
+  document.querySelectorAll('#unitRow .unit-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var u=btn.getAttribute('data-unit');
+      document.body.classList.toggle('unit-met',u==='met');
+      document.body.classList.toggle('unit-imp',u==='imp');
+      document.querySelectorAll('#unitRow .unit-btn').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('#activityRow .opt-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      activity=parseFloat(btn.getAttribute('data-act'));
+      document.querySelectorAll('#activityRow .opt-btn').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+    });
+  });
+
+  byId('btnCalc').addEventListener('click',function(e){e.preventDefault();calc();});
+  byId('btnReset').addEventListener('click',function(e){e.preventDefault();reset();});
+  byId('btnExample').addEventListener('click',function(e){e.preventDefault();loadExample();});
+
+  ['age','bodyFat','weightKg','weightLb','heightCm','heightFt','heightIn'].forEach(function(id){
+    var el=byId(id);
+    if(el) el.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();calc();}});
+  });
+})();
+</script>
+</body>
+</html>
